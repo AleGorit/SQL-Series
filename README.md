@@ -56,5 +56,3 @@ Entities and Relationships:
 
 Feel free to fork, clone, or open an issue if you'd like to contribute or have suggestions for improvements!
 
-
-![defaultdb - course_management](https://github.com/user-attachments/assets/3f3c64d6-093c-4bca-ac48-c37d13d824ff)
