@@ -1,0 +1,243 @@
+create database Student_Course_Management_System;
+
+create schema course_management;
+
+--CREATE TABLES FOR STUDENTS, INSTRUCTORS, COURSES AND ENROLLMENTS
+
+create table course_management.students(
+student_id INT PRIMARY KEY,
+first_name VARCHAR,
+last_name VARCHAR,
+email VARCHAR,
+date_of_birth DATE
+);
+
+create table course_management.instructors (
+instructor_id INT PRIMARY key,
+first_name VARCHAR,
+last_name VARCHAR,
+email VARCHAR
+);
+
+create table course_management.courses (
+course_id INT PRIMARY key,
+course_name VARCHAR,
+course_description TEXT,
+instructor_id INT,
+FOREIGN key (instructor_id) references course_management.instructors (instructor_id)
+);
+
+create table course_management.enrollments(
+enrollment_id INT PRIMARY key,
+enrollment_date DATE,
+student_id INT,
+course_id INT,
+grade CHAR,
+FOREIGN key (student_id) references course_management.students(student_id),
+foreign key (course_id) references course_management.courses(course_id)
+);
+
+
+
+-- INSERT DATA INTO STUDENTS TABLE (10 STUDENTS)
+insert into course_management.students (student_id, first_name, last_name, email, date_of_birth) 
+values
+(1,'John','Cena','jcena@rev.com','01-03-2003'),
+(2,'Ben','Bautista','bbau@mail.com','06-01-1999'),
+(3,'Jane','Doe','jdoe@max.com','02-11-2001'),
+(4,'Mike','Tyson','mtyson@max.com','03-12-2004'),
+(5,'Nia','Jax','njax@wwe.com','06-09-1998'),
+(6,'Shinsuke','Nakamura','snaka@raw.com','07-11-1999'),
+(7,'Finn','Balor','fbalor@raw.com','09-01-2001'),
+(8,'Ronda','Rousey','rrouesy@hotmail.com','01-10-2002'),
+(9,'Shawn','Michaels','smichaels@hot.com','10-11-2000'),
+(10,'Brock','Lesnar','blesnar@mail.com','12-09-2005');
+
+--INSERT DATA INTO INSTRUCTORS TABLE (3 INSTRUCTORS)
+
+insert into course_management.instructors (instructor_id, first_name, last_name, email)
+values
+(101, 'Shane', 'Mac', 'smac@gmail.com'),
+(102, 'Stephanie', 'Triple', 'striple@mail.com'),
+(103, 'Vince', 'Mahon', 'vmahon@hotmail.com');
+
+--INSERT INTO COURSES TABLE (5 COURSES)
+
+insert into course_management.courses (course_id, course_name , course_description, instructor_id)
+values
+(1001, 'Information technology', 'Entails networking', 101),
+(1002, 'Software Engineering', 'Entails proble solving using tech', 101),
+(1003, 'Civil Engineering', 'Entails constructions', 103),
+(1004, 'Marine Science', 'Entails aquatic research', 102),
+(1005, 'Hydrology', 'Entails studying aquatic geology', 102);
+
+--INSERT INTO ENROLLMENT TABLE (15 ENROLLMENTS)
+
+insert into course_management.enrollments (enrollment_id, enrollment_date, student_id, course_id, grade)
+values
+(501,'08-12-2023',2,1002,'A'),
+(502,'12-11-2023',3,1001,'C'),
+(503, '08-11-2023',1,1002,'B'),
+(504,'06-10-2023',5,1002,'A'),
+(505,'09-10-2023',7,1003,'D'),
+(506,'08-11-2023',4,1005,'B'),
+(507,'05-12-2023',6,1001,'C'),
+(508,'10-12-2023',8,1002,'E'),
+(509,'08-11-2024',9,1003,'B'),
+(510,'12-11-2024',1,1005,'D'),
+(511,'06-12-2024',2,1001,'C'),
+(512,'11-12-2024',10,1003,'A'),
+(513,'10-10-2024',5,1001,'F'),
+(514,'04-10-2024',2,1004,'B'),
+(515,'03-10-2024',8,1004,'E');
+
+
+drop table course_management.enrollments 
+
+select *
+from course_management.students;
+
+select *
+from course_management.instructors;
+
+select *
+from course_management.courses;
+
+select *
+from course_management.enrollments;
+
+
+
+--EXPLORATORY ANALYSIS
+
+--students who enrolled in at least one course
+
+select count (student_id) as no_of_enrollment, student_id 
+from course_management.enrollments e 
+group by e.student_id
+having count (e.student_id) > 1;
+
+--students who enrolled in more than two courses
+
+select count (e.student_id), student_id 
+from course_management.enrollments e 
+group by e.student_id
+having count(e.student_id) >2;
+
+--Courses with total enrolled students
+
+select count(course_id), course_id 
+from course_management.enrollments e 
+group by e.course_id;
+
+--Average grade per course (A=4, ..., F=0)
+
+select course_id, grade, avg(
+	case e.grade
+		when 'A' then 4
+		when 'B' then 3
+		when 'C' then 2
+		when 'D' then 1
+		when 'E' then 0
+		else NULL
+	end) as average_grade
+	
+from course_management.enrollments e 
+group by e.grade, e.course_id;
+
+--Students who haven’t enrolled in any course.
+
+select e.student_id, count(e.course_id) as course_count
+from course_management.enrollments e 
+group by e.student_id
+having count(e.course_id) < 1;
+
+--- Students with their average grade across all courses.
+
+select student_id, course_id, avg(
+	case e.grade
+		when 'A' then 4
+		when 'B' then 3
+		when 'C' then 2
+		when 'D' then 1
+		when 'E' then 0
+		else NULL
+	end) as average_grade
+from course_management.enrollments e
+group by e.student_id, e.grade, e.course_id
+
+--- Instructors with the number of courses they teach
+select instructor_id, count(course_id) as no_of_courses
+from course_management.courses c 
+group by c.instructor_id;
+
+--- Students enrolled in a course taught by “John Smith”.
+
+
+select c.instructor_id, e.course_id, e.student_id
+from course_management.enrollments e 
+join course_management.courses c on e.course_id=c.course_id;
+
+--- Top 3 students by average grade
+
+select e.student_id, avg(
+	case e.grade
+		when 'A' then 4
+		when 'B' then 3
+		when 'C' then 2
+		when 'D' then 1
+		when 'E' then 0
+		else NULL
+	end) as average_grade
+from course_management.enrollments e
+group by e.student_id
+order by average_grade desc
+limit 3;
+
+---Students failing (grade = ‘F’) in more than one course
+
+select student_id, grade, course_id
+from course_management.enrollments e 
+where grade = 'F'
+group by e.grade, e.student_id, course_id 
+
+-- Create a VIEW named student_course_summary (student name, course, grade)
+
+SELECT 
+    s.student_id,
+    s.first_name,
+    s.last_name,
+    COUNT(e.grade) AS failed_courses
+FROM 
+    course_management.enrollments e
+JOIN 
+    course_management.students s ON e.student_id = s.student_id
+WHERE 
+    e.grade = 'F'
+GROUP BY 
+    s.student_id, s.first_name, s.last_name
+HAVING 
+    COUNT(e.grade) > 1;
+
+
+--- Add an INDEX on Enrollments.student_id
+
+CREATE INDEX idx_enrollments_student_id
+ON course_management.enrollments (student_id);
+
+
+--- Optional: Create a trigger or stored procedure that logs new enrollments
+
+CREATE TABLE course_management.enrollment_logs (
+    log_id SERIAL PRIMARY KEY,  -- Use AUTO_INCREMENT if you're on MySQL
+    enrollment_id INT,
+    student_id INT,
+    course_id INT,
+    enrollment_date DATE,
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+
+
